@@ -1,0 +1,47 @@
+from flask import Flask, request, render_template_string
+from groq import Groq
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+app = Flask(__name__)
+client = Groq(api_key=os.getenv("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"))
+
+HTML = """
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FrozeListeAI</title>
+<style>body{font-family:Arial;background:#f0f0f0;margin:0;padding:20px;color:#333;}
+.container{max-width:600px;margin:50px auto;background:white;padding:30px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,0.2);}
+input,button{width:100%;padding:15px;margin:10px 0;font-size:18px;border-radius:8px;border:1px solid #ddd;}
+button{background:#667eea;color:white;border:none;cursor:pointer;}
+#result{margin-top:20px;padding:20px;background:#f8f9fa;border-radius:8px;white-space:pre-wrap;}
+</style></head><body>
+<div class="container">
+<h1>🚀 FrozeListeAI</h1>
+<input type="text" id="prompt" placeholder="Örn: Market listesi, 500 TL">
+<button onclick="generate()">Liste Yap!</button>
+<div id="result"></div>
+</div>
+<script>
+async function generate() {
+  const p = document.getElementById('prompt').value;
+  const res = await fetch('/api/liste', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:p})});
+  const data = await res.json();
+  document.getElementById('result').innerHTML = '<pre>' + data.liste + '</pre>';
+}
+</script>
+</body></html>
+"""
+
+@app.route('/')
+def home(): return render_template_string(HTML)
+
+@app.route('/api/liste', methods=['POST'])
+def api():
+    prompt = request.json.get('prompt', '')
+    full = f"Numaralı, emoji'li Türkçe liste: {prompt}"
+    chat = client.chat.completions.create(model="llama3-8b-8192", messages=[{"role":"user","content":full}], max_tokens=500)
+    return {"liste": chat.choices[0].message.content}
+
+if __name__ == '__main__': app.run()
