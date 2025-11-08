@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
-client = Groq(api_key=os.getenv("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"))
+client = Groq(api_key=os.getenv("gsk_aa"))
 
 HTML = """
 <!DOCTYPE html>
